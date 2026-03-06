@@ -1,143 +1,101 @@
-# Adoptme - Backend
+# Adoptme - Backend III
 
-## Entrega N°1 - Módulo de Mocking
+**Francisco Haro** - Comision 85610
 
-**Alumno:** Francisco Haro  
-**Comisión:** 85610  
-**Curso:** Backend III: Testing y Escalabilidad Backend
+Proyecto final del curso Backend III en Coderhouse.
 
----
+## Que incluye esta entrega
 
-### Descripción del proyecto
+- Documentacion Swagger del modulo Users (`/apidocs`)
+- Tests funcionales del router de adoptions con Mocha + Chai + Supertest
+- Dockerfile del proyecto
+- Imagen subida a DockerHub
 
-Este proyecto es una API REST para un sistema de adopción de mascotas. En esta primera entrega se implementó el módulo de Mocking para generar datos de prueba.
+## Link a DockerHub
 
-### Tecnologías utilizadas
+https://hub.docker.com/r/franmotion/adoptme-backend
 
-- Node.js
-- Express
-- MongoDB + Mongoose
-- bcrypt (encriptación de contraseñas)
-- JWT (autenticación)
-- Multer (subida de archivos)
+```
+docker pull franmotion/adoptme-backend
+```
 
-### Instalación
+## Como correr el proyecto
 
-1. Clonar el repositorio
-2. Instalar dependencias:
+### Local
 
 ```bash
 npm install
 ```
 
-3. Crear archivo `.env` en la raíz del proyecto (ver `.env.example`):
+Crear un `.env` con:
 
 ```
-MONGO_URL=mongodb+srv://usuario:password@cluster.mongodb.net/adoptme
+MONGO_URL=mongodb+srv://tu_usuario:tu_pass@cluster.mongodb.net/adoptme
 PORT=8080
-JWT_SECRET=tu_secreto_jwt
+JWT_SECRET=tokenSecretJWT
 ```
-
-4. Iniciar el servidor:
 
 ```bash
 npm start
 ```
 
-El servidor corre en `http://localhost:8080`
+### Con Docker
 
----
-
-### Endpoints de Mocking (Entrega N°1)
-
-#### GET /api/mocks/mockingpets
-
-Genera mascotas de prueba sin guardarlas en la base de datos.
+Construir imagen:
 
 ```bash
-# Ejemplo - genera 10 mascotas
-GET http://localhost:8080/api/mocks/mockingpets?num=10
+docker build -t adoptme-backend .
 ```
 
-#### GET /api/mocks/mockingusers
-
-Genera 50 usuarios de prueba con:
-
-- Password "coder123" encriptada
-- Role aleatorio (user/admin)
-- Array de pets vacío
+Correr contenedor:
 
 ```bash
-GET http://localhost:8080/api/mocks/mockingusers
+docker run -p 8080:8080 -e MONGO_URL=tu_mongo_url -e JWT_SECRET=tokenSecretJWT adoptme-backend
 ```
 
-#### POST /api/mocks/generateData
-
-Genera e inserta usuarios y mascotas en la base de datos.
+O directamente desde DockerHub:
 
 ```bash
-POST http://localhost:8080/api/mocks/generateData
-Content-Type: application/json
-
-{
-    "users": 10,
-    "pets": 20
-}
+docker pull franmotion/adoptme-backend
+docker run -p 8080:8080 -e MONGO_URL=tu_mongo_url -e JWT_SECRET=tokenSecretJWT franmotion/adoptme-backend
 ```
 
----
+La app queda en `http://localhost:8080`
 
-### Otros endpoints disponibles
+## Swagger
 
-| Método | Ruta                     | Descripción                      |
-| ------ | ------------------------ | -------------------------------- |
-| GET    | /api/users               | Obtener todos los usuarios       |
-| GET    | /api/users/:uid          | Obtener usuario por ID           |
-| PUT    | /api/users/:uid          | Actualizar usuario               |
-| DELETE | /api/users/:uid          | Eliminar usuario                 |
-| GET    | /api/pets                | Obtener todas las mascotas       |
-| POST   | /api/pets                | Crear mascota                    |
-| PUT    | /api/pets/:pid           | Actualizar mascota               |
-| DELETE | /api/pets/:pid           | Eliminar mascota                 |
-| GET    | /api/adoptions           | Obtener adopciones               |
-| GET    | /api/adoptions/:aid      | Obtener adopción por ID          |
-| POST   | /api/adoptions/:uid/:pid | Crear adopción                   |
-| POST   | /api/sessions/register   | Registrar usuario                |
-| POST   | /api/sessions/login      | Iniciar sesión                   |
-| GET    | /api/sessions/current    | Usuario actual (requiere cookie) |
+Entrar a `http://localhost:8080/apidocs` para ver la documentacion de Users.
 
----
-
-### Estructura del proyecto
-
-```
-src/
-├── controllers/        # Controladores de cada entidad
-├── dao/               # Data Access Objects
-│   └── models/        # Esquemas de Mongoose
-├── dto/               # Data Transfer Objects
-├── mocks/             # Módulo de mocking (Entrega 1)
-├── public/            # Archivos estáticos
-├── repository/        # Repositorios (patrón repository)
-├── routes/            # Rutas de la API
-├── services/          # Servicios
-├── utils/             # Utilidades (bcrypt, multer, etc)
-└── app.js             # Entrada de la aplicación
-```
-
----
-
-### Testing
-
-Para verificar que los datos se insertaron correctamente:
+## Tests
 
 ```bash
-# Insertar datos de prueba
-curl -X POST http://localhost:8080/api/mocks/generateData -H "Content-Type: application/json" -d '{"users": 5, "pets": 5}'
-
-# Verificar usuarios
-curl http://localhost:8080/api/users
-
-# Verificar mascotas
-curl http://localhost:8080/api/pets
+npm test
 ```
+
+Corre los tests del router de adoptions:
+
+- GET /api/adoptions - trae todas
+- GET /api/adoptions/:aid - busca por id, devuelve 404 si no existe
+- POST /api/adoptions/:uid/:pid - crea adopcion, valida que existan user y pet, y que la mascota no este adoptada
+
+## Endpoints principales
+
+| Metodo | Ruta                     | Descripcion               |
+| ------ | ------------------------ | ------------------------- |
+| GET    | /api/users               | Todos los usuarios        |
+| GET    | /api/users/:uid          | Usuario por id            |
+| PUT    | /api/users/:uid          | Actualizar usuario        |
+| DELETE | /api/users/:uid          | Eliminar usuario          |
+| GET    | /api/pets                | Todas las mascotas        |
+| POST   | /api/pets                | Crear mascota             |
+| PUT    | /api/pets/:pid           | Actualizar mascota        |
+| DELETE | /api/pets/:pid           | Eliminar mascota          |
+| GET    | /api/adoptions           | Todas las adopciones      |
+| GET    | /api/adoptions/:aid      | Adopcion por id           |
+| POST   | /api/adoptions/:uid/:pid | Crear adopcion            |
+| POST   | /api/sessions/register   | Registro                  |
+| POST   | /api/sessions/login      | Login                     |
+| GET    | /api/sessions/current    | Sesion actual             |
+| GET    | /api/mocks/mockingpets   | Mascotas mock             |
+| GET    | /api/mocks/mockingusers  | Usuarios mock             |
+| POST   | /api/mocks/generateData  | Insertar datos mock en BD |
